@@ -13,11 +13,16 @@ server.listen(5)
 clients = [] 
 print("Le serveur écoute sur le port", port)
 
+clients_with_names = {}
+
 def degerer_client(conn, addr):
     print("Connexion de :", addr)
+    name = conn.recv(1024).decode('utf-8')
+    message_to_send = f"[{name}] {data}"
     
     with clients_lock:
         clients.append(conn)
+    broadcast_message(f"[Serveur] {addr} a rejoint la discussion !")
     
     while True:
         try:
@@ -26,9 +31,10 @@ def degerer_client(conn, addr):
                 break
             print(f"Message de {addr}: {data}")  
             conn.send(data.encode("utf-8"))
+        def broadcast_message(message, connection=None):
             with clients_lock:
                for client in clients:
-                   if client != conn:
+                   if client != connection:
                        try:
                           client.send(data.encode("utf-8"))
                        except Exception as e:

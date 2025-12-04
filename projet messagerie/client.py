@@ -4,19 +4,26 @@ import threading
 host = "localhost"
 port = 3004
 
-def revceive_message(client_lock):
+def receive_message(client, client_lock):
     while True:
         try:
-            message = client_socket.lock(1024).decode("utf-8")
+            message = client_socket.recv(1024).decode("utf-8")
             if not message:
                 break
             print ("message reçu",message)
+        except Exception as e:
+            print("Erreur de réception:",e)
+            break    
 try:
     print("Avant connexion")
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((host, port))
 
     print("Connecté au serveur")
+
+    client_lock = threading.Lock()
+    threading = threading.Thread(target=receive_message, args=(client_lock))
+    thread.start()
 
     data = "Je viens de me connecter, salut à toi :)"
     client.sendall(data.encode("utf8"))
