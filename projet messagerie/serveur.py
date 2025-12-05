@@ -11,44 +11,53 @@ server.bind((host, port))
 server.listen(5)
 
 clients = [] 
+clients_names = {}
+
 print("Le serveur écoute sur le port", port)
 
-clients_with_names = {}
+def broadcast_message(message, connection=None):
+     with clients_lock:
+        for client in clients:
+            if client != connection:
+                try:
+                    client.send(data.encode("utf-8"))
+                 except Exception as e:
+                    print("Erreur lors de l'envoi à un client :", e)
+
 
 def degerer_client(conn, addr):
     print("Connexion de :", addr)
     name = conn.recv(1024).decode('utf-8')
-    message_to_send = f"[{name}] {data}"
+    clients_names[conn] = name
     
     with clients_lock:
         clients.append(conn)
-    broadcast_message(f"[Serveur] {addr} a rejoint la discussion !")
+
+    broadcast_message(f"[Serveur] {name} a rejoint le chat.")
     
     while True:
         try:
             data = conn.recv(1024).decode("utf-8") 
             if not data:
                 break
+            
             print(f"Message de {addr}: {data}")  
-            conn.send(data.encode("utf-8"))
-        def broadcast_message(message, connection=None):
-            with clients_lock:
-               for client in clients:
-                   if client != connection:
-                       try:
-                          client.send(data.encode("utf-8"))
-                       except Exception as e:
-                           print("Erreur lors de l'envoi à un client :", e)
+
+            message_to_send = f"[{name}] {data}"
+            broadcast_message(message_to_send, connection=conn)
         except Exception as e:
-            print("Erreur de connexion avec", addr, ":", e)
+            print("Il y a eu une erreur de connexion",addr,":",e)
             break
-        
+
     with clients_lock:
         if conn in clients:
             clients.remove(conn)
+    
+    broadcast_message(f"[Serveur] {addr} a quitté le chat.")
     conn.close()
     print("Déconnexion de :", addr)
 
 while True:
     conn, addr = server.accept()
-    threading.Thread(target=degerer_client, args=(conn, addr)).start()
+    thread = threading.Thread(target=degerer_client, args=(conn, addr))
+    thread.start()

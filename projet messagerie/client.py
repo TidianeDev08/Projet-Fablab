@@ -21,15 +21,18 @@ try:
 
     print("Connecté au serveur")
 
+    name = input("Ton nom ou pseudo :")
+    client.send(name.encode("utf-8"))
+
     client_lock = threading.Lock()
-    threading = threading.Thread(target=receive_message, args=(client_lock))
+    threading = threading.Thread(target=receive_message, args=(client, client_lock))
     thread.start()
 
-    data = "Je viens de me connecter, salut à toi :)"
-    client.sendall(data.encode("utf8"))
-
-    msg = client.recv(1024).decode("utf-8")
-    print("Réponse du serveur :", msg)
+    while True:
+        data = input("")
+        if data.lower() == "/quit":
+            break
+        client.send(data.encode("utf-8"))
 
 except ConnectionRefusedError:
     print("Le serveur n'est pas disponible")
