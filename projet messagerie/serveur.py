@@ -16,51 +16,53 @@ clients_names = {}
 print("Le serveur écoute sur le port", port)
 
 def broadcast_message(message, connection=None):
-     with clients_lock:
+    with clients_lock:
         for client in clients:
             if client != connection:
                 try:
                     client.send(message.encode("utf-8"))
-                except Exception as e:
-                    print("Erreur lors de l'envoi à un client :", e)
+                except:
+                    pass
 
 def save_message(message):
-    with pen("historique.txt","a",encoding="utf-8") as f:
+    with open("historique.txt", "a", encoding="utf-8") as f:
         f.write(message + "\n")
-
 
 def degerer_client(conn, addr):
     print("Connexion de :", addr)
     name = conn.recv(1024).decode('utf-8')
     clients_names[conn] = name
-    
+
     with clients_lock:
         clients.append(conn)
 
     broadcast_message(f"[Serveur] {name} a rejoint le chat.")
-    
+
     while True:
         try:
-            data = conn.recv(1024).decode("utf-8") 
+            data = conn.recv(1024).decode("utf-8")
             if not data:
                 break
-            
-           if data == "/list":
-            liste = ",".join(clients_names.values())
-            conn.send(f"[Serveur] Utilisateurs connectés : {liste}".encode("utf-8"))
-            continue
 
-           if data.startswith("rename"):
-            parts = data.split("",1)
-            if len(parts) == 2:
-                nouveau = parts[1]
-                ancien = clients_names[conn]
-                clients_names[conn] = nouveau
-                broadcast_message(f"[Serveur] {ancien} s'appelle maintenant {nouveau}. ")
+            # Commande /list
+            if data == "/list":
+                liste = ", ".join(clients_names.values())
+                conn.send(f"[Serveur] Utilisateurs connectés : {liste}".encode("utf-8"))
                 continue
 
-            if data.startswith("whisper"):
-                parts = data.split("",2)
+            # Commande /rename
+            if data.startswith("/rename"):
+                parts = data.split(" ", 1)
+                if len(parts) == 2:
+                    nouveau = parts[1]
+                    ancien = clients_names[conn]
+                    clients_names[conn] = nouveau
+                    broadcast_message(f"[Serveur] {ancien} s'appelle maintenant {nouveau}.")
+                    continue
+
+            # Commande /whisper Nom Message
+            if data.startswith("/whisper"):
+                parts = data.split(" ", 2)
                 if len(parts) == 3:
                     cible = parts[1]
                     msg = parts[2]
@@ -71,17 +73,22 @@ def degerer_client(conn, addr):
                             break
                 continue
 
-            message_to_send = f"[{name}] {data}"
-            broadcast_message(message_to_send, connection=conn)
+            # Message normal
+            message_to_send = f"[{clients_names[conn]}] {data}"
+            broadcast_message(message_to_send, conn)
+            save_message(message_to_send)
+
         except Exception as e:
-            print("Il y a eu une erreur de connexion",addr,":",e)
+            print("Erreur avec", addr, ":", e)
             break
 
     with clients_lock:
         if conn in clients:
             clients.remove(conn)
-    
-    broadcast_message(f"[Serveur] {addr} a quitté le chat.")
+        if conn in clients_names:
+            del clients_names[conn]
+
+    broadcast_message(f"[Serveur] {name} a quitté le chat.")
     conn.close()
     print("Déconnexion de :", addr)
 
