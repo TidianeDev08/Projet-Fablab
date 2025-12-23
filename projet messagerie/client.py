@@ -1,8 +1,16 @@
 import socket
-import threading    
+import threading   
+import tkinter as tk 
 
 host = "localhost"
 port = 3004
+
+fenetre = tk.Tk()
+fenetre.title("Les messages")
+fenetre.geometry("400x400")
+
+zones_messages = tk.Text(fenetre)
+zones_messages.pack(padx=10, pady=10, fill="both", expand=True)
 
 def receive_message(client):
     while True:
@@ -13,6 +21,13 @@ def receive_message(client):
             print(message)
         except:
             break
+
+def afficher_message():
+    data = ecrire_message.get()
+    if data !="":
+        try:
+            client.send(data.encode("utf-8"))
+            ecrire_message.delete(0, "fin")
 
 try:
     print("Avant connexion")
