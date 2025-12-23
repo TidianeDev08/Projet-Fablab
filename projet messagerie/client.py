@@ -14,7 +14,7 @@ zones_messages.pack(padx=10, pady=10, fill="both", expand=True)
 
 def receive_message(client):
     while True:
-        try: 
+        try:  
             message = client.recv(1024).decode("utf-8")
             if not message:
                 break
