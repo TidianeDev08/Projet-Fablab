@@ -12,6 +12,13 @@ fenetre.geometry("400x400")
 zones_messages = tk.Text(fenetre)
 zones_messages.pack(padx=10, pady=10, fill="both", expand=True)
 
+ecrie_message = tk.Frame(fenetre)
+ecrie_message.pack(padx=10, pady=10, fill="x")
+
+entre_message = tk.Entry(ecrie_message)
+entre_message.pack(side="left", fill="x", expande=True)
+
+
 def receive_message(client):
     while True:
         try:  
