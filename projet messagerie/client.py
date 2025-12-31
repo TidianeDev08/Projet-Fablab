@@ -36,27 +36,22 @@ def afficher_message():
             client.send(data.encode("utf-8"))
             ecrire_message.delete(0, "fin")
 
-try:
-    print("Avant connexion")
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((host, port))
+bouton = tk.Button(frame_bas, text="Envoyer", command=envoyer_message)
+bouton.pack(side="right")
 
-    print("Connecté au serveur")
+print("Démarrage client")
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect((host, port))
+
+print("Connecté au serveur")
+
 
     name = input("Ton nom ou pseudo : ")
     client.send(name.encode("utf-8"))
-
+ 
     thread = threading.Thread(target=receive_message, args=(client,))
+    thread.deamon = True
     thread.start()
 
-    while True:
-        data = input("")
-        if data == "/quit":
-            break
-        client.send(data.encode("utf-8"))
-
-except ConnectionRefusedError:
-    print("Le serveur n'est pas disponible")
-
-finally:
-    client.close()
+fenetre.mainloop()
+client.close()

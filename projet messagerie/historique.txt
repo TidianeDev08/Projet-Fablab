@@ -1,3 +1,5 @@
 [cheick] hello
 [yoni] yo
 [cheick] salut les gars
+[hello] cheick
+[cheick] slt
