@@ -30,7 +30,10 @@ def save_message(message):
 
 def degerer_client(conn, addr):
     print("Connexion de :", addr)
-    name = conn.recv(1024).decode('utf-8')
+    try:
+        name = conn.recv(1024).decode('utf-8')
+    except:
+        return
     clients_names[conn] = name
 
     with clients_lock:
@@ -66,10 +69,12 @@ def degerer_client(conn, addr):
                 if len(parts) == 3:
                     cible = parts[1]
                     msg = parts[2]
+                    trouve = False
                     for c, nom in clients_names.items():
                         if nom == cible:
                             c.send(f"[Privé de {clients_names[conn]}] {msg}".encode("utf-8"))
                             conn.send(f"[Privé à {cible}] {msg}".encode("utf-8"))
+                            trouve = True
                             break
                 continue
 

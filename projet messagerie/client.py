@@ -9,15 +9,16 @@ fenetre = tk.Tk()
 fenetre.title("Les messages")
 fenetre.geometry("400x400")
 
-zones_messages = tk.Text(fenetre)
-zones_messages.pack(padx=10, pady=10, fill="both", expand=True)
+fenetre.configure(bg="dark slate gray")
+zones_messages = scrolledtext.ScrolledText(fenetre, bg="dim gray", fg="white", font=("Arial", 10))
+zones_messages.pack(padx=10, pady=10, fill='both', expand=True)
+zones_messages.config(state="disabled")
 
-ecrie_message = tk.Frame(fenetre)
-ecrie_message.pack(padx=10, pady=10, fill="x")
+ecrie_message = tk.Frame(fenetre, bg="dark slate gray")
+ecrie_message.pack(padx=10, pady=10, fill='x')
 
-entre_message = tk.Entry(ecrie_message)
-entre_message.pack(side="left", fill="x", expande=True)
-
+entre_message = tk.Entry(ecrie_message, bg="grey", fg="black", font=("Arial", 12))
+entre_message.pack(side="left", fill="x", expand=True)
 
 def receive_message(client):
     while True:
@@ -25,7 +26,10 @@ def receive_message(client):
             message = client.recv(1024).decode("utf-8")
             if not message:
                 break
-            print(message)
+            zones_messages.config(state="normal")
+            zones_messages.insert("end", message + "\n")
+            zones_messages.config(state="disabled")
+            zones_messages.see("end")
         except:
             break
 
